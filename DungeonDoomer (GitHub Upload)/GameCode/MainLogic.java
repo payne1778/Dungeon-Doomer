@@ -232,7 +232,7 @@ public class MainLogic {
         }
         
         if (getGameStart()) {
-            tempCharacter = new Character(heroName, 5, 0, 25, 0, 0, 0, false, false);
+            tempCharacter = new Character(heroName, 100, 0, 25, 0, 0, 0, false, false);
             characterList.add(tempCharacter);
             hero = characterList.get(0);
         }
