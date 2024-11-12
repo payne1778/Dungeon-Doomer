@@ -1,0 +1,22 @@
+Willkommen zu Dungeon Doomer!
+
+Das Spiel ist einfach. Sie befinden sich in einem Kerker und haben zwei Ziele:
+
+    1. Sammeln Sie so viel Geld wie moeglich.
+    2. Entrinnen Sie den Kerker mit so vielen Gesundheitspunkten moeglich.
+
+Aber es ist nicht so leicht, das zu erledigen. 
+
+    - Mit jedem Dran sind zwei Gesundheitspunkte abgezogen.
+    - Verschiedene Monster im Kerker koennen Sie im Kampf schwer verletzen.
+
+Um dabei zu helfen, denken Sie daran:
+
+    - Traenke sind hilfreich! Sie koennen ihnen von Handler, die ueberall im Kerker liegt, kaufen.
+    - Sie koennen Geld ueberall den Kerker finden. Erwaegen Sie, den Kerker zu entdecken!
+    - Geben Sie "Hilfe/Helfen" ein, um Tips und Hilfe zu bekommen. Woerter mit Sternchen sind Befehle!
+    - Monster und Sie koennen sich aus dem Kampf zurueckziehen.
+
+Fuer eine zusaetzliche Herausforderung ziehen Sie es in Erwaegung, die Zurueckziehenfunktion auszuschalten.
+
+Viel Erfolg Held!
