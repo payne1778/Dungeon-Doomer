@@ -20,6 +20,8 @@ public class IllegalLanguageException extends Exception {
 
     /**
      * This will be thrown if an attempt was made for the language variable to be changed to an invalid language. 
+     * 
+     * @param invalidLanguage   The invalid language that the game was attempting to switch to 
      */
     public IllegalLanguageException(String invalidLanguage) {
         super("The following language setting is not supported: " + invalidLanguage);
