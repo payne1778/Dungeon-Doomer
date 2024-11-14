@@ -238,12 +238,15 @@ public class Character {
         characterList = MainLogic.getCharacterList();
         hero = characterList.get(0);
         this.setCharacterInSameRoom(-1);
+        
         for (int i = 1; i < characterList.size(); i++) {
+            
+            // If the hero and a monster are in the same room, the characterInSameRoom variable will be updated to the index of that monster in characterList
             if ((hero.getXCord() == characterList.get(i).getXCord()) && (hero.getYCord() == characterList.get(i).getYCord())) {
-                // If the hero and a monster are in the same room, the characterInSameRoom variable will be updated to the index of that monster in characterList
                 setCharacterInSameRoom(i);
                 return true;
             }
+            
         }
         return false;
     }
@@ -271,11 +274,13 @@ public class Character {
                 }
             } 
             else if ((characterList.get(1).getTypeValue() == 1) && (characterList.get(2).getTypeValue() != 1)) { 
+                // TODO: add comment on what this does 
                 for (int i = 2; i < characterList.size(); i++) {
                     smellCounter += smellCounterIncrementor(i);
                 }
             } 
             else if ((characterList.get(2).getTypeValue() == 1) && (characterList.get(3).getTypeValue() != 1)) {
+                // TODO: add comment on what this does 
                 for (int i = 3; i < characterList.size(); i++) {
                     smellCounter += smellCounterIncrementor(i);
                 }
@@ -326,6 +331,7 @@ public class Character {
         damage = random.nextInt(hero.getMaxDamage());
         characterHealth = characterList.get(hero.getCharacterInSameRoom()).getHealth() - damage;
         characterList.get(hero.getCharacterInSameRoom()).setHealth(characterHealth);
+        
         switch (MainLogic.getLanguage()) {
             case "English": MainLogic.getGameWindow().printToTerminal("\n\nYou hit " + characterList.get(hero.getCharacterInSameRoom()).getName() + " for " + damage + " damage\n"); break;
             case "German": MainLogic.getGameWindow().printToTerminal("\n\nSie haben " + characterList.get(hero.getCharacterInSameRoom()).getName() + " für " + damage + " Schadenspunkte geschlagen\n"); break;
@@ -395,9 +401,8 @@ public class Character {
                 validDirection = true;
             }
         } 
-        else {
-            MainLogic.getGameWindow().logAndNotifyIllegalState("An valid direction was imputed, but the hero could not be moved.");
-        }
+        else MainLogic.getGameWindow().logAndNotifyIllegalState("An valid direction was imputed, but the hero could not be moved.");
+        
         return validDirection;
     }
     
