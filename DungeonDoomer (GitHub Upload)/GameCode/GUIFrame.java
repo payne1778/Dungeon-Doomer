@@ -59,7 +59,7 @@ public class GUIFrame extends JFrame {
     private SaveFileMaker saveFileMaker = new SaveFileMaker();       // The class object for the Save File Maker file. 
     private SaveFileReader saveFileReader = new SaveFileReader();    // The class object for the Save File Reader file. 
     
-    private String[] adminCommands = {"perish", "escape", "list", "size", "status", "lang", "money"};   // A list of commands that can be used if user is admin
+    private String[] adminCommands = {"perish", "escape", "list", "size", "status", "break lang", "money"};   // A list of commands that can be used if user is admin
     
     /**
      * Constructor that initializes the game.
@@ -121,8 +121,41 @@ public class GUIFrame extends JFrame {
         isAdmin = privilege;
     }
 
-    public int getCharacterLocationOnMap(int index) {
-        return (MainLogic.getCharacterList().get(index).getYCord() * MainLogic.getCharacterList().get(index).getDungeonSize()) + MainLogic.getCharacterList().get(index).getXCord();
+    public void setNameEntered(boolean nameEntered) {
+        nameEntered = this.nameEntered;
+    }
+
+    private void setHeroName(boolean playGame) {
+        if (nameField.getText().length() > 0) {
+            heroName = nameField.getText().toLowerCase().trim();
+            setNameEntered(true);
+            if (heroName.equalsIgnoreCase("admin")) setIsAdmin(true);
+            if (playGame) playGame(true);
+        }
+    }
+
+    /**
+     * TODO: make java comment 
+     * 
+     * @return
+     */
+    public int calculateHeroLocationID() {
+        return (MainLogic.getCharacterList().get(0).getYCord() * MainLogic.getCharacterList().get(0).getDungeonSize()) + MainLogic.getCharacterList().get(0).getXCord();
+    }
+
+    /**
+     * TODO: make java comment 
+     * 
+     * @param index
+     * @return
+     */
+    public int[] calculateCordsFromLocationID(int index) {
+        int[] coordinates = new int[2];
+        
+        try { coordinates[0] = (int)(index % MainLogic.getDungeonSize()); } catch (ArithmeticException e) { coordinates[0] = 0; }
+        try { coordinates[1] = (int)(index / MainLogic.getDungeonSize()); } catch (ArithmeticException e) { coordinates[1] = 0; }
+        
+        return coordinates;
     }
 
     /**
@@ -185,10 +218,12 @@ public class GUIFrame extends JFrame {
      */
     public void pushCloseMessage() {
         String title = "", message = "";
+
         switch (MainLogic.getLanguage()) {
             case "English": title = "Warning"; message = "All unsaved progress will be lost! Do you want to continue?"; break;
             case "German": title = "Achtung"; message = "Alle nicht gespeicherten Informationen geht verloren! Möchten Sie fortfahren?"; break;
         }
+
         Integer yesOrNo = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
         if (yesOrNo == 0) { MainLogic.getGameWindow().dispose(); }
     }
@@ -198,12 +233,14 @@ public class GUIFrame extends JFrame {
      */
     public void pushEscapeMessage() {
         String title = "", message = "";
+
         switch (MainLogic.getLanguage()) {
             case "English": title = "Congrats"; message = "You have escaped the dungeon! Would you like to keep exploring?"; break;
             case "German": title = "Glückwunsch"; message = "Sie sind aus dem Kerker entkommen! Möchten Sie weiter abenteuern?"; break;
         }
         
         Integer yesOrNo = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
+
         if (yesOrNo == 0) { 
             MainLogic.setGameRerun(true);
         }
@@ -215,6 +252,7 @@ public class GUIFrame extends JFrame {
      */
     public void pushDeathMessage() {
         String title = "", message = "";
+        
         switch (MainLogic.getLanguage()) {
             case "English": title = "Game Over"; message = "You have perished. Click “Okay“ to close or “Cancel“ to reload from a save."; break;
             case "German": title = "Spiel vorbei"; message = "Sie sind gestorben. Drücken Sie „OK“, um zu schließen, oder „Abbrechen“, um aus einer gespeicherten Datei zu laden."; break;
@@ -222,14 +260,32 @@ public class GUIFrame extends JFrame {
         
         Integer yesOrNo = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.OK_CANCEL_OPTION);
         if (yesOrNo == 2) {
+            
             try { 
                 clearTerminalsAndUpdate(); 
                 MainLogic.setIsSaveLoading(true); 
                 playGame(true); 
             } 
             catch (Exception e) { e.printStackTrace(MainLogic.getPrintStream()); }
+            
         }
         else if (yesOrNo == 0) { MainLogic.getGameWindow().dispose(); }
+    }
+
+    /**
+     * When called, an Illegal State Exception will be called and logged. 
+     * Additionally, the user will be notified of the exception. 
+     * 
+     * @param exceptionMessage     The reason why the exception was thrown 
+     */
+    public void logAndNotifyIllegalState(String exceptionMessage) {
+        try { 
+            throw new IllegalStateException(exceptionMessage); 
+        }
+        catch (IllegalStateException ise) {
+            MainLogic.getGameWindow().pushMessage(ise.getMessage());
+            ise.printStackTrace(MainLogic.getPrintStream());
+        }
     }
 
     /**
@@ -237,7 +293,7 @@ public class GUIFrame extends JFrame {
      */
     public void mainMenu() {
         clearPrimaryAndUpdate();
-        displayTitleTexts();
+        displayGameTitleText();
         createMainMenuButtons();
         nameField.requestFocusInWindow();
         mainMenuButtonCounter = 0;
@@ -246,7 +302,7 @@ public class GUIFrame extends JFrame {
     /** 
      * Displays the title, author, and name texts in the upper half of the main menu.
      */
-    public void displayTitleTexts() {
+    public void displayGameTitleText() {
         // Title Panel and Label (Used in upper half of main menu screen)
         JPanel titlePanel = createBorderLayoutPanel(screenWidth, screenHeight * 4/9, "BLACK");
         primaryPanel.add(titlePanel, BorderLayout.NORTH);
@@ -278,11 +334,8 @@ public class GUIFrame extends JFrame {
         JLabel nameLabel = createJLabel(nameLabelText, "Arial", 30, "BLACK", "BLUE");
         namePanel.add(nameLabel);
         
-        nameField = new JTextField();
-        nameField.setFont(new Font("Arial", Font.PLAIN, 30));
+        nameField = createJTextField("", "Arial", 30, "DARK_GRAY", "BLUE");
         nameField.setHorizontalAlignment((int)JPanel.CENTER_ALIGNMENT);
-        nameField.setBackground(Color.DARK_GRAY.darker());
-        nameField.setForeground(Color.BLUE);
         namePanel.add(nameField);
         
         nameField.addKeyListener(new KeyListener() {
@@ -292,12 +345,7 @@ public class GUIFrame extends JFrame {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    if ((nameField.getText().length() > 0)) {
-                        heroName = nameField.getText().toLowerCase().trim();
-                        if (heroName.equals("admin")) isAdmin = true;
-                        nameEntered = true;
-                        playGame(true);
-                    }
+                    setHeroName(true);
                 }
             }
         });
@@ -307,12 +355,14 @@ public class GUIFrame extends JFrame {
      * Displays the game buttons found in the bottom half of the main menu. 
      */
     private void createMainMenuButtons() {
+        
         // Menu Panel with Buttons
         JPanel menuPanel = createGridLayoutPanel(screenWidth, screenHeight * 4/9, 1, 3);
         primaryPanel.add(menuPanel, BorderLayout.SOUTH);
         
         ArrayList<JPanel> buttonPanels = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
+            // TODO: call factory function on this 
             JPanel buttonPanel = new JPanel();
             buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, (screenHeight / 2 - 125) / 2));
             buttonPanel.setBackground(Color.DARK_GRAY.darker());
@@ -332,15 +382,11 @@ public class GUIFrame extends JFrame {
                 case 2: buttonName = settingsMenu.extrapolate(); break;
             }
             
-            JButton button = createJButton(buttonName, "Arial", 27, "BLUE", "WHITE");
+            JButton button = createJButton(buttonName, "Arial", 27, "BLUE", "WHITE", true);
             button.setPreferredSize(new Dimension(200, 80));
             button.addActionListener(e -> {
                 
-                if ((nameField.getText().length() > 0)) {
-                    heroName = nameField.getText().toLowerCase().trim();
-                    if (heroName.equals("admin")) isAdmin = true;
-                    nameEntered = true;
-                }
+                setHeroName(false);
                 
                 if (button.getText().equals(instructions.extrapolate())) {
                     instructionsMenu(new LanguageTranslation("Back to the Main Menu", "Zurück zum Hauptmenü"));
@@ -351,8 +397,17 @@ public class GUIFrame extends JFrame {
                 else if (button.getText().equals(settingsMenu.extrapolate())) {
                     settingsMenu(new LanguageTranslation("Back to the Main Menu", "Zurück zum Hauptmenü"));
                 } 
-                else try { throw new IllegalTranslationException(button.getText()); } catch (IllegalTranslationException ite) { ite.printStackTrace(MainLogic.getPrintStream()); }
-                
+                else {
+                    
+                    // This should never get called unless there is a typo in the hard coded translation string
+                    try {
+                        throw new IllegalTranslationException(button.getText()); 
+                    } 
+                    catch (IllegalTranslationException ite) {
+                        ite.printStackTrace(MainLogic.getPrintStream()); 
+                    }
+                    
+                }
             });
             
             panel.add(button);
@@ -364,9 +419,11 @@ public class GUIFrame extends JFrame {
      * Configures UI to a normal game for the user to interact with. Also prints out command prompts. 
      */
     public void playGame(Boolean userInputRequest) {
+        
         if (MainLogic.getGameStart() || MainLogic.getGameRerun()) {
             characterList = MainLogic.initializeGame(heroName);
         }
+        
         characterList = MainLogic.getCharacterList();
         hero = characterList.get(0);
         fullGameGraphicsUpdate();
@@ -401,23 +458,23 @@ public class GUIFrame extends JFrame {
         mapPanel.add(mapGrid);
         
         for (int i = 0; i < (MainLogic.getDungeonSize() * MainLogic.getDungeonSize()); i++) {
-            JPanel gridPanel = new JPanel();
-            gridPanel.setLayout(new BorderLayout());
-            gridPanel.setBackground(Color.DARK_GRAY.darker());
-            gridPanel.setPreferredSize(new Dimension((int)(screenWidth / 2.4) / MainLogic.getDungeonSize(), (int)(screenHeight / 1.4) / MainLogic.getDungeonSize()));
+            JPanel gridPanel = createBorderLayoutPanel((int)(screenWidth / 2.4) / MainLogic.getDungeonSize(), (int)(screenHeight / 1.4) / MainLogic.getDungeonSize(), "DARK_GRAY");
             panelGrid.add(gridPanel);
             mapGrid.add(gridPanel);
-            primaryPanel.updateUI();
         }
         
         for (JPanel panel : panelGrid) { 
-            JButton gridButton = new JButton();
-            gridButton.setBackground(Color.DARK_GRAY.darker());
+            JButton gridButton = createJButton("", "DARK_GRAY", "DARK_GRAY", true);
+            
+            int[] coordinates = calculateCordsFromLocationID(panelGrid.indexOf(panel));
+            gridButton.setToolTipText("X: " + coordinates[0] + ", Y: " + coordinates[1]);
+            
             buttonGrid.add(gridButton);
             panel.add(gridButton);
+            
         }
         
-        updateLocation(getCharacterLocationOnMap(0));
+        updateLocation(calculateHeroLocationID());
     }
 
     /** 
@@ -465,6 +522,7 @@ public class GUIFrame extends JFrame {
             valuePanel.add(valueLabel);
             statusPanelCounter++;
         }
+        
         statusPanelCounter = 0;
     }
 
@@ -507,6 +565,8 @@ public class GUIFrame extends JFrame {
         primaryPanel.add(terminalPanel, BorderLayout.EAST);
         
         outputTerminal = createJTextArea(terminalOutput, "Arial", 24, false, "BLACK", "BLUE");
+        
+        // TODO: call factory function on this 
         JScrollPane scrollPane = new JScrollPane(outputTerminal); 
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setPreferredSize(new Dimension(screenWidth / 4, screenHeight - (screenHeight * 3/10)));
@@ -520,16 +580,18 @@ public class GUIFrame extends JFrame {
         inputTerminal = createJTextField(terminalInput, "Arial", 24, "BLACK", "BLUE");
         inputTerminal.setPreferredSize(new Dimension(screenWidth / 4, screenHeight - (screenHeight * 26/30)));
         terminalPanel.add(inputTerminal, BorderLayout.SOUTH);
+        
         inputTerminal.requestFocusInWindow();
         inputTerminal.addKeyListener(new KeyListener() {
             
             public void keyTyped(KeyEvent e) {}
             public void keyReleased(KeyEvent e) {}
             
-            // REFERENCE: https://stackoverflow.com/questions/4673350/detecting-when-user-presses-enter-in-java
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    
+                    // Formats user input to contain no uppercase, whitespace, or punctuation characters
                     userInput = inputTerminal.getText().toLowerCase().trim().replaceAll("\\p{Punct}", "");
                     
                     if (MainLogic.getGameOver() && !MainLogic.getIsSaveLoading()) {
@@ -539,21 +601,21 @@ public class GUIFrame extends JFrame {
                         else if (hero.isDead()) {
                             pushDeathMessage();
                         }
-                        else {
-                            logAndNotifyIllegalState("Error: The game is over, but the hero is neither dead nor free from dungeon.");
-                        }
+                        else logAndNotifyIllegalState("Error: The game is over, but the hero is neither dead nor free from dungeon.");
                     }
+                    
                     try {
+                        
                         if (MainLogic.getIsInCombat()) {
                             combatCommandInterpreter(userInput);
                         }
-                        else {
-                            generalCommandInterpreter(userInput);
-                        }
+                        else generalCommandInterpreter(userInput);
+                        
                     } 
                     catch (Exception ex) {
                         ex.printStackTrace(MainLogic.getPrintStream());
                     }
+                    
                     playGame(false);
                     inputTerminal.requestFocusInWindow();
                 }
@@ -564,7 +626,7 @@ public class GUIFrame extends JFrame {
     /**
      * Evaluates the user's input when the hero is not in combat.
      * 
-     * @param userInput     The user's input for what the hero should do
+     * @param userInput     The user's input for what the hero or game should do
      */
     public void generalCommandInterpreter(String userInput)  {
         String[] validDirectionsEN = {"north", "south", "east", "west", "go north", "go south", "go east", "go west"};
@@ -574,44 +636,44 @@ public class GUIFrame extends JFrame {
             pushCloseMessage();
         }
         else if (Arrays.stream(adminCommands).anyMatch(userInput::contains)) {
-            if (!isAdmin) { 
-                switch (MainLogic.getLanguage()) {
-                    case "English": printToTerminal("\nThis command is not available to non-admin users"); break;
-                    case "German": printToTerminal("\nDieser Befehl ist für Nicht-Admin-Benutzer nicht verfügbar"); break;
-                } 
-            } 
-            adminCommand(userInput);
+            handleAdminCheck(userInput);
         }
         else if (userInput.equals("help") || userInput.contains("hilf") || userInput.contains("helf")) {
-            handleSaveAndHelpCommands("help");
+            handleHelpCommand();
         }
         else if (MainLogic.getIsSaveLoading()) {
             loadFromSave(userInput);
         }
-        // If the user had not entered the above inputs and is not loading a save, the following inputs will be checked. 
         else if (!MainLogic.getIsSaveLoading()) {
+            
+            // If the user had not entered the above inputs and is not loading a save, the following inputs will be checked. 
             if (userInput.contains("save") || userInput.contains("speich")) {
-                handleSaveAndHelpCommands("save");
+                handleSaveAndLoadCommands("save");
             }
             else if (userInput.contains("load") || userInput.contains("lad")) {
-                handleSaveAndHelpCommands("load");
+                handleSaveAndLoadCommands("load");
             }
             else {
+                
+                // If the user is not trying to save or load from a save, the following inputs will be checked. 
                 if (MainLogic.getIsInTrade()) {
+                    
                     if ((userInput.contains("leave")) || userInput.contains("verlassen")) {
                         MainLogic.setIsInTrade(false);
                         playGame(true);
                     }
                     else trade(userInput);
+                    
                 }
-                else {
+                else {  
+                    
+                    // If the user is not in a trade, the following inputs will be checked. 
                     if (userInput.contains("health") || userInput.contains("heil")) {
                         MainLogic.drinkHealthPotion();
                     }
                     else if (userInput.contains("strength") || userInput.contains("kraft")) {
                         MainLogic.drinkStrengthPotion();
                     }
-                    // REFERENCE: https://stackoverflow.com/questions/8992100/test-if-a-string-contains-any-of-the-strings-from-an-array
                     else if ((Arrays.stream(validDirectionsEN).anyMatch(userInput::contains)) || 
                     (Arrays.stream(validDirectionsDE).anyMatch(userInput::contains))) {
                         MainLogic.move(userInput);
@@ -620,19 +682,21 @@ public class GUIFrame extends JFrame {
                         nonvalidInputMessage();
                         playGame(false);
                     }
+                    
                 }
             }
         }
-        else {
-            logAndNotifyIllegalState("User must either be loading a save or playing the game.");
-        }
+        else logAndNotifyIllegalState("User must either be loading a save or playing the game.");
         
         if (MainLogic.getCharacterDeath()) {
+            
             MainLogic.setIsInCombat(false);
             if (!MainLogic.isGameOverAndPushMessageIfSo()) playGame(true);
             characterList = MainLogic.getCharacterList();
+
         }
         else playGame(true);
+        
     }
 
     /**
@@ -674,8 +738,43 @@ public class GUIFrame extends JFrame {
                 case "German": pushMessage("Erfolgreich geladen aus " + saveFileReader.getSaveFileString()); break;
             }
             playGame(false);
+            
         }
         else nonvalidSaveMessage();
+    }
+
+    /**
+     * Prints out some helpful tips when the user wants help. Will give different feedback depending on game state. 
+     */
+    private void handleHelpCommand() {
+        
+        if (MainLogic.getIsInTrade()) {
+            switch (MainLogic.getLanguage()) {
+                case "English": 
+                    printToTerminal("When trading, you have the following commands available to you: *health* potion, *strength* potion, *leave* trade, *kill* merchant"); 
+                break;
+                case "German": 
+                    printToTerminal("Während des Handels können Sie die folgenden Befehle nutzen: *Heiltrank* trinken, *Krafttrank* trinken, Handel *verlassen*, Händler *toeten/töten*"); 
+                break;
+            }
+        }
+        else if (MainLogic.getIsSaveLoading()) {
+            switch (MainLogic.getLanguage()) {
+                case "English": printToTerminal("When loading from a save, you must enter a number that corresponds to the save file you wish to load from."); break;
+                case "German": printToTerminal("Wenn Sie eine Speicherdatei laden möchten, drücken Sie bitte die passende Nummer des Speicherdateinamens."); break;
+            }
+        }
+        else {
+            switch (MainLogic.getLanguage()) {
+                case "English": 
+                printToTerminal("\n\nGenerally, you have the following commands available to you: go north, go south, go east, go west, save, load save, drink health potion, drink strength potion");
+                break;
+                case "German": 
+                    printToTerminal("Normalerweise können Sie die folgenden Befehle nutzen: geh *nord*, geh *süd/sued*, geh *ost*, geh *west*, *Heiltrank* trinken, *Krafttrank* trinken, *speichern*, *laden*"); 
+                break;
+            }
+        }
+
     }
 
     /**
@@ -683,36 +782,8 @@ public class GUIFrame extends JFrame {
      * 
      * @param command    The inputted command from the user 
      */
-    private void handleSaveAndHelpCommands(String command) {
+    private void handleSaveAndLoadCommands(String command) { // TODO: break up this method to handle either help or save/load commands
         switch (command) {
-            case "help":
-                if (MainLogic.getIsInTrade()) {
-                    switch (MainLogic.getLanguage()) {
-                        case "English": 
-                            printToTerminal("When trading, you have the following commands available to you: *health* potion, *strength* potion, *leave* trade, *kill* merchant"); 
-                        break;
-                        case "German": 
-                            printToTerminal("Während des Handels können Sie die folgenden Befehle nutzen: *Heiltrank* trinken, *Krafttrank* trinken, Handel *verlassen*, Händler *toeten/töten*"); 
-                        break;
-                    }
-                }
-                else if (MainLogic.getIsSaveLoading()) {
-                    switch (MainLogic.getLanguage()) {
-                        case "English": printToTerminal("When loading from a save, you must enter a number that corresponds to the save file you wish to load from."); break;
-                        case "German": printToTerminal("Wenn Sie eine Speicherdatei laden möchten, drücken Sie bitte die passende Nummer des Speicherdateinamens."); break;
-                    }
-                }
-                else {
-                    switch (MainLogic.getLanguage()) {
-                        case "English": 
-                        printToTerminal("\n\nGenerally, you have the following commands available to you: go north, go south, go east, go west, save, load save, drink health potion, drink strength potion");
-                        break;
-                        case "German": 
-                            printToTerminal("Normalerweise können Sie die folgenden Befehle nutzen: geh *nord*, geh *süd/sued*, geh *ost*, geh *west*, *Heiltrank* trinken, *Krafttrank* trinken, *speichern*, *laden*"); 
-                        break;
-                    }
-                }
-            break;
             case "save":
                 if (MainLogic.getIsInTrade()) {
                     printToTerminal(new LanguageTranslation("You cannot save while trading", "Sie können während des Handels keine Speicherdatei erstellen").extrapolate());
@@ -720,7 +791,7 @@ public class GUIFrame extends JFrame {
                 else if (MainLogic.getIsInCombat()) {
                     printToTerminal(new LanguageTranslation("You cannot save while in combat", "Sie können eine Speicherdatei nicht erstellen, während Sie im Kampf sind.").extrapolate());
                 }
-                else { saveFileMaker.createSave(); }
+                else saveFileMaker.createSave(); 
             break;
             case "load":
                 if (MainLogic.getIsInTrade()) {
@@ -738,28 +809,13 @@ public class GUIFrame extends JFrame {
     }
 
     /**
-     * When called, an Illegal State Exception will be called and logged. 
-     * Additionally, the user will be notified of the exception. 
-     * 
-     * @param exceptionMessage     The reason why the exception was thrown 
-     */
-    public void logAndNotifyIllegalState(String exceptionMessage) {
-        try { 
-            throw new IllegalStateException(exceptionMessage); 
-        }
-        catch (IllegalStateException ise) {
-            MainLogic.getGameWindow().pushMessage(ise.getMessage());
-            ise.printStackTrace(MainLogic.getPrintStream());
-        }
-    }
-
-    /**
      * Evaluates the user's input when the hero is not in combat. 
      * 
      * @param userInput     The user's input for what the hero should do
      */
     public void combatCommandInterpreter(String userInput) {
         Boolean successfulRetreat = false;
+        
         if (userInput.equals("fight") || userInput.contains("kampf")) {
             hero.hitCharacter();
             hero.turnHealthDeduction();
@@ -775,35 +831,49 @@ public class GUIFrame extends JFrame {
             MainLogic.drinkStrengthPotion();
         }
         else if (userInput.equals("help") || userInput.contains("hilf") || userInput.contains("helf")) {
-            handleSaveAndHelpCommands("help");
+            handleHelpCommand();
         }
         else if (userInput.contains("save") || userInput.contains("speich")) {
-            handleSaveAndHelpCommands("save");
+            handleSaveAndLoadCommands("save");
         }
         else if (userInput.contains("load") || userInput.contains("lad")) {
-            handleSaveAndHelpCommands("load");
+            handleSaveAndLoadCommands("load");
         }
         else if (Arrays.stream(adminCommands).anyMatch(userInput::contains)) {
-            if (!isAdmin) { 
-                switch (MainLogic.getLanguage()) {
-                    case "English": printToTerminal("\nThis command is not available to non-admin users"); break;
-                    case "German": printToTerminal("\nDieser Befehl ist für Nicht-Admin-Benutzer nicht verfügbar"); break;
-                } 
-            } 
-            adminCommand(userInput);
+            handleAdminCheck(userInput);
         }
         else {
             nonvalidInputMessage();
             playGame(false);
         }
+        
         if (MainLogic.getCharacterDeath() || successfulRetreat) {
             MainLogic.setIsInCombat(false);
             if (!MainLogic.isGameOverAndPushMessageIfSo()) playGame(true); // No cleanup function needed 
             characterList = MainLogic.getCharacterList();
         }
         else { 
-            if(!successfulRetreat) MainLogic.setIsInCombat(true); fight(false); 
+            if(!successfulRetreat) {
+                MainLogic.setIsInCombat(true); 
+                fight(false); 
+            }
         }
+
+    }
+
+    /**
+     * Checks to see if the user is an admin before executing admin command
+     * 
+     * @param userInput     The admin command the user inputted
+     */
+    private void handleAdminCheck(String userInput) {
+        if (!isAdmin) {
+            switch (MainLogic.getLanguage()) {
+                case "English": printToTerminal("\nThis command is not available to non-admin users"); break;
+                case "German": printToTerminal("\nDieser Befehl ist für Nicht-Admin-Benutzer nicht verfügbar"); break;
+            }
+        }
+        adminCommand(userInput);
     }
 
     /**
@@ -831,13 +901,12 @@ public class GUIFrame extends JFrame {
             case "status":
                 System.out.println("Combat: " + MainLogic.getIsInCombat() + ", Trade: " + MainLogic.getIsInTrade() + ", Loading Save: " + MainLogic.getIsSaveLoading());
                 break;
-            case "lang": 
+            case "break lang": 
                 MainLogic.setLanguage("non-valid-language-setting");
                 break;
             case "money":
                 hero.setGoldValue(hero.getGoldValue() + 100);
                 break;
-                
         }
     }
 
@@ -890,13 +959,16 @@ public class GUIFrame extends JFrame {
                     case "German": printToTerminal("\n\n" + hero.getGoldValue() + " Geld ist nicht genug, um einen Heiltrank zu kaufen");  break;
                 }
             }
+            
             characterList.get(hero.getCharacterInSameRoom()).setHealthPotionCondition(false); 
             hero.setHealthPotionCondition(true);
             hero.setGoldValue(hero.getGoldValue() - MainLogic.getPotionPrice());
+            
             switch (MainLogic.getLanguage()) {
                 case "English": printToTerminal("\n\nYou bought a health potion and have " + hero.getGoldValue() + " gold remaining"); break;
                 case "German": printToTerminal("\n\nSie haben einen Heiltrank gekauft und haben noch " + hero.getGoldValue() + " Geld übrig"); break;
             }
+
         }
         else if (tradeInput.contains("strength") || tradeInput.contains("kraft")) {
             
@@ -918,20 +990,25 @@ public class GUIFrame extends JFrame {
                     case "German": printToTerminal("\n\n" + hero.getGoldValue() + " Geld ist nicht genug, um einen Krafttrank zu kaufen");  break;
                 }
             }
+            
             characterList.get(hero.getCharacterInSameRoom()).setStrengthPotionCondition(false); 
             hero.setStrengthPotionCondition(true);
             hero.setGoldValue(hero.getGoldValue() - MainLogic.getPotionPrice());
+            
             switch (MainLogic.getLanguage()) {
                 case "English": printToTerminal("\n\nYou bought a strength potion and have " + hero.getGoldValue() + " gold remaining"); break;
                 case "German": printToTerminal("\n\nSie haben einen Krafttrank gekauft und haben noch " + hero.getGoldValue() + " Geld übrig"); break;
             }
+
         } 
         else if (tradeInput.contains("kill") || tradeInput.contains("toet") || tradeInput.contains("töt")) {
+            
             // If the user decides to kill the merchant, the merchant will then forever be considered a monster 
             characterList.get(hero.getCharacterInSameRoom()).setTypeValue(2); 
             MainLogic.setIsInTrade(false);
             MainLogic.setIsInCombat(true);
             fight(true);
+
         }
         else nonvalidInputMessage();
     }
@@ -967,6 +1044,7 @@ public class GUIFrame extends JFrame {
                 break;
             }
         }
+
     }
 
     /**
@@ -993,18 +1071,18 @@ public class GUIFrame extends JFrame {
         JPanel instructionsButtonPanel = createGridLayoutPanel(screenWidth / 4 , screenHeight / 8, 1, 1, "BLACK");
         titlePanel.add(instructionsButtonPanel, BorderLayout.WEST);
         
-        JButton instructionsButton = createJButton(instructionsText, "Arial", 35, "BLUE", "WHITE");
-        instructionsButton.setBorder(null);
+        JButton instructionsButton = createJButton(instructionsText, "Arial", 35, "BLUE", "WHITE", false);
         instructionsButtonPanel.add(instructionsButton);
+        
         instructionsButton.addActionListener(e -> instructionsMenu(new LanguageTranslation("Back to the Game", "Zurück zum Spiel")));
         
         // Settings Panel and Button
         JPanel settingsButtonPanel = createGridLayoutPanel(screenWidth / 4 , screenHeight / 8, 1, 1, "BLACK");
         titlePanel.add(settingsButtonPanel, BorderLayout.EAST);
         
-        JButton settingsButton = createJButton(settingsText, "Arial", 35, "BLUE", "WHITE");
-        settingsButton.setBorder(null);
+        JButton settingsButton = createJButton(settingsText, "Arial", 35, "BLUE", "WHITE", false);
         settingsButtonPanel.add(settingsButton);
+        
         settingsButton.addActionListener(e -> settingsMenu(new LanguageTranslation("Back to the Game", "Zurück zum Spiel")));
     }
 
@@ -1035,7 +1113,7 @@ public class GUIFrame extends JFrame {
         primaryPanel.add(instructionsReturnPanel, BorderLayout.SOUTH);
         
         String translation = langObject.extrapolate();
-        JButton returnButton = createJButton(translation, "BLUE", "WHITE");
+        JButton returnButton = createJButton(translation, "BLUE", "WHITE", true);
         instructionsReturnPanel.add(returnButton);
         returnButton.addActionListener(e -> {
             
@@ -1100,19 +1178,19 @@ public class GUIFrame extends JFrame {
         }
         
         // Button creation for settings menu 
-        JButton retreatButton = createJButton(retreatButtonText, "DARK_GRAY", "WHITE");
+        JButton retreatButton = createJButton(retreatButtonText, "DARK_GRAY", "WHITE", true);
         retreatOptionPanel.add(retreatButton, BorderLayout.CENTER);
         retreatButton.addActionListener(e -> { MainLogic.toggleRetreat(); settingsMenu(langObject); });
         
-        JButton languageButton = createJButton(languageButtonText, "DARK_GRAY", "WHITE");
+        JButton languageButton = createJButton(languageButtonText, "DARK_GRAY", "WHITE", true);
         languageOptionPanel.add(languageButton, BorderLayout.CENTER);
         languageButton.addActionListener(e -> { MainLogic.toggleLanguage(); settingsMenu(langObject); });
         
-        JButton cacheButton = createJButton(cacheButtonText, "DARK_GRAY", "WHITE");
+        JButton cacheButton = createJButton(cacheButtonText, "DARK_GRAY", "WHITE", true);
         cacheOptionPanel.add(cacheButton, BorderLayout.CENTER);
         cacheButton.addActionListener(e -> { MainLogic.clearErrorLogCache(); settingsMenu(langObject); });
         
-        JButton loadSaveButton = createJButton(loadSaveButtonText, "DARK_GRAY", "WHITE");
+        JButton loadSaveButton = createJButton(loadSaveButtonText, "DARK_GRAY", "WHITE", true);
         loadSaveOptionPanel.add(loadSaveButton, BorderLayout.CENTER);
         loadSaveButton.addActionListener(e -> { saveLoadingMenu(langObject); });
         
@@ -1121,12 +1199,11 @@ public class GUIFrame extends JFrame {
         primaryPanel.add(settingsReturnPanel, BorderLayout.SOUTH);
         
         String translation = langObject.extrapolate();
-        JButton returnButton = createJButton(translation, "BLUE", "WHITE");
+        JButton returnButton = createJButton(translation, "BLUE", "WHITE", true);
         settingsReturnPanel.add(returnButton);
         returnButton.addActionListener(e -> {
             
             try {
-                
                 if (translation.equals("Back to the Game") || translation.equals("Zurück zum Spiel")) {
                     playGame(false);
                 }
@@ -1134,7 +1211,6 @@ public class GUIFrame extends JFrame {
                     mainMenu();
                 }
                 else throw new IllegalTranslationException(translation);
-            
             }
             catch (IllegalTranslationException ile) {
                 ile.printStackTrace(MainLogic.getPrintStream());
@@ -1142,11 +1218,11 @@ public class GUIFrame extends JFrame {
             catch (Exception ex) {
                 ex.printStackTrace(MainLogic.getPrintStream());
             }
-
+            
         });
     }
 
-/**
+    /**
      * When instructions button is pressed, the instructions menu will be displayed. 
      * 
      * @param langObject     The name translation of the method to return to when done
@@ -1182,10 +1258,7 @@ public class GUIFrame extends JFrame {
         JTextArea saveMenuArea = createJTextArea(terminalOutput, "Arial", 28, false, "BLACK", "BLUE");
         textsPanel.add(saveMenuArea, BorderLayout.CENTER);
         
-        JScrollPane scrollPane = new JScrollPane(saveMenuArea); 
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setPreferredSize(new Dimension((screenWidth - (screenWidth * 1/4)), (screenHeight - (screenHeight * 4/9))));
-        scrollPane.setBorder(null);
+        JScrollPane scrollPane = createScrollPane(saveMenuArea, (screenWidth - (screenWidth * 1/4)), (screenHeight - (screenHeight * 4/9)), false);
         textsPanel.add(scrollPane, BorderLayout.NORTH);
         
         // User input functionality
@@ -1208,6 +1281,7 @@ public class GUIFrame extends JFrame {
                     saveLoadingMenu(langObject);
                 }
             }
+            
         });
         
         // Return Button Functionality
@@ -1218,9 +1292,10 @@ public class GUIFrame extends JFrame {
         if (!MainLogic.getGameStart()) if (MainLogic.isGameOverAndPushMessageIfSo()) { 
             buttonTextTranslation = new LanguageTranslation("Quit Game", "Spiel verlassen").extrapolate(); 
         }
+        
         buttonTextTranslation = new LanguageTranslation("Back to Settings", "Zurück zur Einstellungen").extrapolate();
         
-        JButton returnButton = createJButton(buttonTextTranslation, "BLUE", "WHITE");
+        JButton returnButton = createJButton(buttonTextTranslation, "BLUE", "WHITE", true);
         loadSaveReturnPanel.add(returnButton);
         returnButton.addActionListener(e -> { 
             
@@ -1450,10 +1525,11 @@ public class GUIFrame extends JFrame {
      * @param foreground    The color of the foreground
      * @return button       The button that was created
      */
-    private JButton createJButton(String text, String background, String foreground) {
+    private JButton createJButton(String text, String background, String foreground, boolean hasBorder) {
         JButton button = new JButton(text);
         button.setBackground(getColor(background));
         button.setForeground(getColor(foreground));
+        if (!hasBorder) button.setBorder(null);
         return button;
     }
 
@@ -1467,8 +1543,8 @@ public class GUIFrame extends JFrame {
      * @param foreground    The color of the foreground
      * @return button       The button that was created 
      */
-    private JButton createJButton(String text, String font, int fontSize, String background, String foreground) {
-        JButton button = createJButton(text, background, foreground);
+    private JButton createJButton(String text, String font, int fontSize, String background, String foreground, boolean hasBorder) {
+        JButton button = createJButton(text, background, foreground, hasBorder);
         button.setFont(new Font(font, Font.PLAIN, fontSize));
         return button;
     }
@@ -1497,7 +1573,7 @@ public class GUIFrame extends JFrame {
      * @return desiredColor     The color object with the name of the colorName input 
      * @reference               https://stackoverflow.com/questions/3772098/how-does-java-awt-color-getcolorstring-colorName-work
      */
-    private Color getColor(String colorName) {
+    public Color getColor(String colorName) {
         Color desiredColor;
         try {
             Field tempField = Color.class.getField(colorName);
