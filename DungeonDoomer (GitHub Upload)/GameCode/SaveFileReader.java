@@ -13,14 +13,14 @@ import java.util.ArrayList;
  */
 public class SaveFileReader {
 
-    private ArrayList<Character> characterList = new ArrayList<Character>();
+    private ArrayList<Character> characterList = new ArrayList<>();
     private ArrayList<String> saveFiles;
     private File[] arrayOfFiles;
     private int dungeonSizeValue = -1;
     private String targetFile = "";
 
     public int getSaveFileNumberTotal() {
-        saveFiles = new ArrayList<String>(); 
+        saveFiles = new ArrayList<>();
         File folder = new File("SaveFiles//");
         arrayOfFiles = folder.listFiles();
         return arrayOfFiles.length;
@@ -75,23 +75,20 @@ public class SaveFileReader {
     }
 
     private Integer toInt(String str) {
-        Integer integer = Integer.parseInt(str);
-        return integer;
+        return Integer.parseInt(str);
     }
 
-    private Boolean toBoolean(String str) {
-        Boolean booleanValue = Boolean.parseBoolean(str);
-        return booleanValue;
+    private boolean toBoolean(String str) {
+        return Boolean.parseBoolean(str);
     }
 
-    @SuppressWarnings("unused")
     private void fileReader(String fileName) throws IndexOutOfBoundsException {
         try {
             int dungeonSize = 0, numOfCharacters = 0, turnCounter = 0, characterInSameRoom = -1, potionTurnCounter = 0;
             String fileNameWithPath = "SaveFiles//" + fileName;
             BufferedReader reader = new BufferedReader(new FileReader(fileNameWithPath));
             String line = reader.readLine();
-            Boolean canRetreat;
+            Boolean canRetreat = null;
             
             // Gets the value of dungeonSize, numOfCharacters, turnCounter, and characterInSameRoom from the save file 
             while (!line.contains("~~~ END OF DUNGEON INFO ~~~")) {
@@ -130,7 +127,9 @@ public class SaveFileReader {
                 line = reader.readLine();
             }
             
-            System.out.println("dungeonSize: " + dungeonSize + ", numOfCharacters: " + numOfCharacters + ", turnCounter: " + turnCounter + ", characterInSameRoom: " + characterInSameRoom);
+            System.out.println("dungeonSize: " + dungeonSize + ", numOfCharacters: " + numOfCharacters +
+                    ", turnCounter: " + turnCounter + ", characterInSameRoom: " + characterInSameRoom +
+                    ", potionTurnCounter: " + potionTurnCounter + ", canRetreat: " + canRetreat);
             reader.close();
             
             // Reopens BufferedReader to evaluate the characters' info in the file 
@@ -170,13 +169,13 @@ public class SaveFileReader {
                         String attributeValue = attributeGetter(line, 'r');
                         attributeUpdater("type", attributeValue, i);
                     } 
-                    else if (attributeType.equals("healthPotionCondition")) {
+                    else if (attributeType.equals("hasHealthPotion")) {
                         String attributeValue = attributeGetter(line, 'r');
-                        attributeUpdater("healthPotionCondition", attributeValue, i);
+                        attributeUpdater("hasHealthPotion", attributeValue, i);
                     } 
-                    else if (attributeType.contains("strengthPotionCondition")) {
+                    else if (attributeType.contains("hasStrengthPotion")) {
                         String attributeValue = attributeGetter(line, 'r');
-                        attributeUpdater("strengthPotionCondition", attributeValue, i); 
+                        attributeUpdater("hasStrengthPotion", attributeValue, i); 
                     }
                     line = reader.readLine();
                 }
@@ -194,14 +193,14 @@ public class SaveFileReader {
         }
     }
 
-    // If the current game has less characters than the loaded save file, more "empty" characters are added
+    // If the current game has fewer characters than the loaded save file, more "empty" characters are added
     private void characterAdder(int numOfCharacters) {
         while (true) {
             if (characterList.size() < numOfCharacters) {
                 Character gameCharacter = new Character();
                 characterList.add(gameCharacter);
             } 
-            else { break; }
+            else break;
         }
     }
 
@@ -222,7 +221,7 @@ public class SaveFileReader {
             if (letter == ('l')) {
                 attributeValue = line.substring(0, colonIndex);
             } else if (letter == ('r')) {
-                attributeValue = line.substring(colonIndex, line.length());
+                attributeValue = line.substring(colonIndex);
             }
         }
         catch (IndexOutOfBoundsException e) {
@@ -248,28 +247,28 @@ public class SaveFileReader {
 
     private void attributeUpdater(String attributeType, String attributeValue, int index) {
         int attributeIntValue;
-        Boolean attributeBoolValue;
+        boolean attributeBoolValue;
         switch (attributeType) {
             case "dungeonSize":
                 attributeIntValue = toInt(attributeValue);
-                characterList.get(0).setDungeonSize(attributeIntValue);
+                characterList.getFirst().setDungeonSize(attributeIntValue);
                 setDungeonSizeValue(attributeIntValue);
                 break;
             case "turnCounter":
                 attributeIntValue = toInt(attributeValue);
-                characterList.get(0).setTurnCounterValue(attributeIntValue);
+                characterList.getFirst().setTurnCounterValue(attributeIntValue);
                 break;
             case "characterInSameRoom":
                 attributeIntValue = toInt(attributeValue);
-                characterList.get(0).setCharacterInSameRoom(attributeIntValue);
+                characterList.getFirst().setCharacterInSameRoomIndex(attributeIntValue);
                 break;
             case "potionTurnCounter":
                 attributeIntValue = toInt(attributeValue);
-                characterList.get(0).setPotionTurnCounter(attributeIntValue);
+                characterList.getFirst().setPotionTurnCounter(attributeIntValue);
                 break;
             case "canRetreat":
                 attributeBoolValue = toBoolean(attributeValue);
-                characterList.get(0).setCanRetreat(attributeBoolValue);
+                characterList.getFirst().setCanRetreat(attributeBoolValue);
                 break;
             case "name":
                 characterList.get(index).setName(attributeValue);
@@ -298,13 +297,13 @@ public class SaveFileReader {
                 attributeIntValue = toInt(attributeValue);
                 characterList.get(index).setTypeValue(attributeIntValue);
                 break;
-            case "healthPotionCondition":
+            case "hasHealthPotion":
                 attributeBoolValue = toBoolean(attributeValue);
-                characterList.get(index).setHealthPotionCondition(attributeBoolValue);
+                characterList.get(index).setHasHealthPotion(attributeBoolValue);
                 break;
-            case "strengthPotionCondition":
+            case "hasStrengthPotion":
                 attributeBoolValue = toBoolean(attributeValue);
-                characterList.get(index).setStrengthPotionCondition(attributeBoolValue);
+                characterList.get(index).setHasStrengthPotion(attributeBoolValue);
                 break;
         }
     }

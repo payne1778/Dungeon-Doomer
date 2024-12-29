@@ -1,11 +1,6 @@
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -17,27 +12,28 @@ import java.util.Random;
  * Holds most of the backend logic for the game. 
  * 
  * @author Blake Payne
- * @since  08.19.2024
+ * @since  12.29.2024
  */
 public class MainLogic {
     
-    private static Integer dungeonSize;              // Stores the numerical size of the dungeon
-    private static Integer merchantCounter = 0;      // Keeps track of the number of merchants created
-    private static Integer skeletonCounter = 0;      // Keeps track of the number of skeletons created
-    private static Integer goblinCounter = 0;        // Keeps track of the number of goblins created
-    private static Integer mimicCounter = 0;         // Keeps track of the number of mimics created
-    private static Integer golemCounter = 0;         // Keeps track of the number of golems created
-    private static Integer potionPrice = 50;         // The price of a potion that a hero can buy from a merchant 
-    private static Integer chestReward = 15;         // The reward given to the hero when finding a non-hostile mimic
-    private static Integer potionTurnCounter = 0;    // Keeps track of how many turns the hero has a strength boost activated     
-    private static Boolean canRetreat = true;        // Keeps track of the ability of characters to retreat from a fight
-    private static Boolean gameStart = true;         // Keeps track if the game has been started by Game Window 
-    private static Boolean gameOver = false;         // Keeps track if the game has ended due to hero death or escape 
+    private static int dungeonSize;              // Stores the numerical size of the dungeon
+    private static int merchantCounter = 0;      // Keeps track of the number of merchants created
+    private static int skeletonCounter = 0;      // Keeps track of the number of skeletons created
+    private static int goblinCounter = 0;        // Keeps track of the number of goblins created
+    private static int mimicCounter = 0;         // Keeps track of the number of mimics created
+    private static int golemCounter = 0;         // Keeps track of the number of golems created
+    private static int potionPrice = 50;         // The price of a potion that a hero can buy from a merchant
+    private static int chestReward = 15;         // The reward given to the hero when finding a non-hostile mimic
+    private static int potionTurnCounter = 0;    // Keeps track of how many turns the hero has a strength boost activated
+
+    private static boolean canRetreat = true;        // Keeps track of the ability of characters to retreat from a fight
+    private static boolean gameStart = true;         // Keeps track if the game has been started by Game Window
+    private static boolean gameOver = false;         // Keeps track if the game has ended due to hero death or escape
     private static boolean gameRerun = false;        // Keeps track if the game has been rerun or not (only true by escape)
-    private static Boolean isInCombat = false;       // Keeps track if the hero is in combat with a monster
-    private static Boolean isInTrade = false;        // Keeps track if the hero is in a trade with a merchant 
-    private static Boolean characterDeath = false;   // Keeps track of when a character has died in the dungeon
-    private static Boolean isSaveLoading = false;    // Checks to see if the user is attempting to load from a save 
+    private static boolean isInCombat = false;       // Keeps track if the hero is in combat with a monster
+    private static boolean isInTrade = false;        // Keeps track if the hero is in a trade with a merchant
+    private static boolean characterDeath = false;   // Keeps track of when a character has died in the dungeon
+    private static boolean isSaveLoading = false;    // Checks to see if the user is attempting to load from a save
     private static String language = "English";      // Stores the string name of the game's language. English is the default.
     
     private static GUIFrame gameWindow;         // GUIFrame class object to access and send information to GUI components
@@ -66,9 +62,9 @@ public class MainLogic {
             
         });
         
-        // Creates a error log file for game instance. 
+        // Creates an error log file for game instance.
         try {
-            ps = new PrintStream(new File("GameLogs//Error Log " + getCurrentTimeStamp() + ".log"));
+            ps = new PrintStream(new File(".//GameLogs//Error Log " + getCurrentTimeStamp() + ".log"));
         }
         catch (FileNotFoundException e) {
             gameWindow.pushMessage("Warning: Error log could not be created. Please try again.");
@@ -98,19 +94,19 @@ public class MainLogic {
         return gameWindow;
     }
 
-    public static Integer getDungeonSize() {
+    public static int getDungeonSize() {
         return dungeonSize;
     }
 
-    public static void setDungeonSize(Integer size) {
+    public static void setDungeonSize(int size) {
         dungeonSize = size;
     }
 
-    public static Integer getPotionTurnCounter() {
+    public static int getPotionTurnCounter() {
         return potionTurnCounter;
     }
 
-    public static void setPotionTurnCounter(Integer turnCount) {
+    public static void setPotionTurnCounter(int turnCount) {
         potionTurnCounter = turnCount;
     }
 
@@ -137,15 +133,15 @@ public class MainLogic {
 
     }
 
-    public static Boolean getCharacterDeath() {
+    public static boolean getCharacterDeath() {
         return characterDeath;
     }
 
-    public static void setCharacterDeath(Boolean death) {
+    public static void setCharacterDeath(boolean death) {
         characterDeath = death;
     }
 
-    public static Boolean getGameStart() {
+    public static boolean getGameStart() {
         return gameStart;
     }
 
@@ -153,64 +149,64 @@ public class MainLogic {
         gameStart = start;
     }
 
-    public static Boolean getGameOver() {
+    public static boolean getGameOver() {
         return gameOver;
     }
 
-    public static void setGameOver(Boolean overBoolean) {
+    public static void setGameOver(boolean overBoolean) {
         gameOver = overBoolean;
     }
 
-    public static Boolean getCanRetreat() {
+    public static boolean getCanRetreat() {
         return canRetreat;
     }
 
-    public static void setCanRetreat(Boolean retreatBoolean) {
+    public static void setCanRetreat(boolean retreatBoolean) {
         canRetreat = retreatBoolean;
     }
 
-    public static Boolean getIsSaveLoading() {
+    public static boolean getIsSaveLoading() {
         return isSaveLoading;
     }
 
-    public static void setIsSaveLoading(Boolean saveLoading) {
+    public static void setIsSaveLoading(boolean saveLoading) {
         isSaveLoading = saveLoading;
     }
 
-    public static Boolean getGameRerun() {
+    public static boolean getGameRerun() {
         return gameRerun;
     }
 
-    public static void setGameRerun(Boolean rerunBoolean) {
+    public static void setGameRerun(boolean rerunBoolean) {
         gameRerun = rerunBoolean;
         gameRerunResetter();
     }
 
-    public static Boolean getIsInCombat() {
+    public static boolean getIsInCombat() {
         
         // If there is no character in the same room, the hero is not in combat
-        if (hero.getCharacterInSameRoom() == -1) {
+        if (hero.getCharacterInSameRoomIndex() == -1) {
             isInCombat = false;
         }
         return isInCombat;
         
     }
 
-    public static void setIsInCombat(Boolean combatBoolean) {
+    public static void setIsInCombat(boolean combatBoolean) {
         isInCombat = combatBoolean;
     }
 
-    public static Boolean getIsInTrade() {
+    public static boolean getIsInTrade() {
         
         // If there is no character in the same room, the hero is not in a trade
-        if (hero.getCharacterInSameRoom() == -1) {
+        if (hero.getCharacterInSameRoomIndex() == -1) {
             isInTrade = false;
         }
         return isInTrade;
         
     }
 
-    public static void setIsInTrade(Boolean tradeBoolean) {
+    public static void setIsInTrade(boolean tradeBoolean) {
         isInTrade = tradeBoolean;
     }
 
@@ -255,15 +251,12 @@ public class MainLogic {
     }
 
     /**
-     * Generates a random number between 1 and the size of the dungeon. 
+     * Generates a random number between 0 and the size of the dungeon.
      * 
      * @return randomNum    A random number to be returned 
      */
-    public static int randomNumber() { 
-        // Generates a random number between 0 and the size of the catacomb
-        Random random = new Random();
-        int randomNum = random.nextInt(dungeonSize);
-        return randomNum;
+    public static int getRandomNumber(int bound) {
+        return new Random().nextInt(bound);
     }
 
     /**
@@ -271,7 +264,7 @@ public class MainLogic {
      */
     public static void gameRerunResetter() {
         if (getGameRerun()) {
-            Integer numOfCharacters = characterList.size() - 1;
+            int numOfCharacters = characterList.size() - 1;
             
             for (int i = numOfCharacters; i > 0; i--) {
                 characterList.remove(i);
@@ -284,7 +277,7 @@ public class MainLogic {
             golemCounter = 0;
             hero.setXCord(0);
             hero.setYCord(0);
-            hero.setCharacterInSameRoom(-1);
+            hero.setCharacterInSameRoomIndex(-1);
             hero.setTurnCounterValue(0);
             MainLogic.setCharacterDeath(false);
             MainLogic.setIsInCombat(false);
@@ -305,7 +298,7 @@ public class MainLogic {
      * @return coordinateArray    An array of valid, random coordinates for a monster to spawn
      */
     private static int[] validCoordinates() {
-        int xCord = randomNumber(), yCord = randomNumber(); 
+        int xCord = getRandomNumber(dungeonSize), yCord = getRandomNumber(dungeonSize);
         int[] coordinateArray = new int[2];
         
         while (true) {
@@ -333,9 +326,9 @@ public class MainLogic {
 
             }
             
-            // If invalidCoordinates is true, new random coordinates are chosen. Otherwise the while loop breaks
+            // If invalidCoordinates is true, new random coordinates are chosen. Otherwise, the while loop breaks
             if (invalidCoordinates) {
-                xCord = randomNumber(); yCord = randomNumber();
+                xCord = getRandomNumber(dungeonSize); yCord = getRandomNumber(dungeonSize);
             } 
             else { 
                 coordinateArray[0] = xCord; coordinateArray[1] = yCord; 
@@ -347,7 +340,7 @@ public class MainLogic {
     }
 
     /**
-     * Creates the merchant character(s) and calls the makeMonsters() method afterwards. 
+     * Creates the merchant character(s) and calls the makeMonsters() method afterward.
      */
     private static void makeCharacters() {
         int xCord, yCord;
@@ -401,40 +394,16 @@ public class MainLogic {
      * @param yCord     A random Y coordinate for a monster to spawn at 
      */
     private static void makeMonsters(int xCord, int yCord) {
-        switch (randomNumber()) {
-            case 0:
+        switch (getRandomNumber(dungeonSize)) {
+            case 0, 1, 2, 3:
                 goblinCounter++;
                 tempCharacter = new Character("Goblin " + goblinCounter, 15, 2, 5, xCord, yCord, 5, false, false);
                 break;
-            case 1:
-                goblinCounter++;
-                tempCharacter = new Character("Goblin " + goblinCounter, 15, 2, 5, xCord, yCord, 5, false, false);
-                break;
-            case 2:
-                goblinCounter++;
-                tempCharacter = new Character("Goblin " + goblinCounter, 15, 2, 5, xCord, yCord, 5, false, false);
-                break;
-            case 3:
-                goblinCounter++;
-                tempCharacter = new Character("Goblin " + goblinCounter, 15, 2, 5, xCord, yCord, 5, false, false);
-                break;
-            case 4:
+            case 4, 5, 6:
                 skeletonCounter++;
                 tempCharacter = new Character("Skeleton " + skeletonCounter, 30, 2, 10, xCord, yCord, 8, false, false);
                 break;
-            case 5:
-                skeletonCounter++;
-                tempCharacter = new Character("Skeleton " + skeletonCounter, 30, 2, 10, xCord, yCord, 8, false, false);
-                break;
-            case 6:
-                skeletonCounter++;
-                tempCharacter = new Character("Skeleton " + skeletonCounter, 30, 2, 10, xCord, yCord, 8, false, false);
-                break;
-            case 7:
-                mimicCounter++;
-                tempCharacter = new Character("Mimic " + mimicCounter, 40, 3, 15, xCord, yCord, 13, false, false);
-                break;
-            case 8:
+            case 7, 8:
                 mimicCounter++;
                 tempCharacter = new Character("Mimic " + mimicCounter, 40, 3, 15, xCord, yCord, 13, false, false);
                 break;
@@ -449,18 +418,18 @@ public class MainLogic {
     /**
      * Gets the text from the instructions.txt file and returns it as a string.
      * 
-     * @return instructionsText    All of the text from the instructions file
+     * @return instructionsText    All the text from the instructions file
      */
     public static String getInstructionsText() {
         String fileName = "", instructionsText = "", line = "";
-        
+
         LanguageTranslation instructionsError = new LanguageTranslation(
             "The Instructions document cannot be accessed/obtained. Please exit and reload game.", 
             "Die Anweisungen Datei konnte nicht aufgerufen/gefunden. Bitte beenden Sie das Spiel und laden Sie es neu."
         );
         
         try {
-            
+
             switch (language) {
                 case "English": fileName = "instructions.txt"; break;
                 case "German": fileName = "anweisungen.txt"; break;
@@ -489,8 +458,8 @@ public class MainLogic {
      */
     public static void clearErrorLogCache() {
         File[] arrayOfFiles = new File("GameLogs//").listFiles();
-        boolean successfulClearing = true; 
-        
+        boolean successfulClearing = true;
+
         for (int i = 0; i < arrayOfFiles.length; i++) {
             try {
                 Files.deleteIfExists(Paths.get(arrayOfFiles[i].getAbsolutePath()));
@@ -587,7 +556,7 @@ public class MainLogic {
                     
                     characterList.remove(characterList.get(i));
                     setCharacterDeath(false);
-                    hero.setCharacterInSameRoom(-1);
+                    hero.setCharacterInSameRoomIndex(-1);
                     
                 }
 
@@ -632,10 +601,10 @@ public class MainLogic {
     public static void drinkHealthPotion() {
         hero = characterList.get(0);
         
-        if (hero.getHealthPotionCondition()) {
+        if (hero.getHasHealthPotion()) {
             
             hero.setHealth(hero.getHealth() + 25);
-            hero.setHealthPotionCondition(false);
+            hero.setHasHealthPotion(false);
             
             switch (language) {
                 case "English": gameWindow.printToTerminal("\n\nYou consumed a health potion. Your health is now " + hero.getHealth()); break;
@@ -656,12 +625,12 @@ public class MainLogic {
      * Allows hero to drink a strength potion if one was previously bought. 
      */
     public static void drinkStrengthPotion() {
-        hero = characterList.get(0);
+        hero = characterList.getFirst();
         
-        if (hero.getStrengthPotionCondition()) {
+        if (hero.getHasStrengthPotion()) {
             
             hero.setMaxDamage(50);
-            hero.setStrengthPotionCondition(false);
+            hero.setHasStrengthPotion(false);
             
             switch (language) {
                 case "English": gameWindow.printToTerminal("\n\nYou consumed a strength potion! Your max damage is now " + hero.getMaxDamage()); break;
@@ -685,7 +654,7 @@ public class MainLogic {
      * @param direction     The inputted direction that the hero wishes to move in 
      */
     public static void move(String direction) {
-        hero = characterList.get(0);
+        hero = characterList.getFirst();
         
         // TODO: try to see if you can change the background based on whether the hero has been there or not
         // gameWindow.getButtonGrid().get(gameWindow.getHeroLocationID()).setBackground(gameWindow.getColor("BLACK"));
@@ -699,23 +668,21 @@ public class MainLogic {
                 characterDeath = true;
                 return;
             }
-            
+
+            // If alone in a room, the hero also has a random chance to find gold there
             if (!hero.isAnotherCharacterInSameRoom()) {
                 
-                // If alone in a room, the hero also has a random chance to find gold there 
-                if (randomNumber() >= 5) {
+                if (getRandomNumber(dungeonSize) >= 5) {
                     
-                    int randomGoldReward;
-                    while (true) {
-                        randomGoldReward = randomNumber();
-                        if (randomGoldReward == 0) continue; else break;
+                    int randomGoldReward = 0;
+                    while (randomGoldReward == 0) {
+                        randomGoldReward = getRandomNumber(dungeonSize);
                     }
                     
                     switch (language) {
                         case "English": gameWindow.printToTerminal("\n\nYou found " + randomGoldReward + " gold at " + hero.getXCord() + ", " + hero.getYCord() + " "); break;
                         case "German": gameWindow.printToTerminal("\n\nSie haben " + randomGoldReward + " Geld an " + hero.getXCord() + ", " + hero.getYCord() + " gefunden "); break;
                     }
-                    
                     hero.setGoldValue(hero.getGoldValue() + randomGoldReward);
 
                 }
@@ -737,39 +704,39 @@ public class MainLogic {
      * Handles various events that may occur while user moves through the dungeon.
      */
     public static void event() {
-        hero = characterList.get(0);
-        
-        switch (characterList.get(hero.getCharacterInSameRoom()).getTypeValue()) {
+        Character character = characterList.get(hero.getCharacterInSameRoomIndex());
+        hero = characterList.getFirst();
+
+        switch (character.getTypeValue()) {
             case 1:
                 setIsInTrade(true);
                 printMerchantInventory(true);
             break;
             case 2:
-                
-                /**
+
+                /*
                  * If the hero has less than 75 health or if monsters cannot retreat, combat will
                  * be initiated. Otherwise, there is a 50% chance of monster retreat
                  */
-                if (hero.getHealth() < 75 || !MainLogic.getCanRetreat() || randomNumber() % 2 == 0) {
+                if (hero.getHealth() < 75 || !MainLogic.getCanRetreat() || getRandomNumber(dungeonSize) % 2 == 0) {
                     initializeCombat();
                 }
                 else {
-                    
                     retreat(2);
                     
                     // If the monster died while retreating, it will be removed.
-                    if (characterList.get(hero.getCharacterInSameRoom()).isDead()) {
+                    if (character.isDead()) {
                         setCharacterDeath(true);
                         isGameOverAndPushMessageIfSo(); // TODO: Clean up IS needed here
                     }
                     else {
                         switch (language) {
-                            case "English": gameWindow.printToTerminal("\n" + characterList.get(hero.getCharacterInSameRoom()).getName() + " ran away from the fight!"); break;
-                            case "German": gameWindow.printToTerminal("\n" + characterList.get(hero.getCharacterInSameRoom()).getName() + " hat sich aus dem Kampf zurückgezogen!"); break;
+                            case "English": gameWindow.printToTerminal("\n" + character.getName() + " ran away from the fight!"); break;
+                            case "German": gameWindow.printToTerminal("\n" + character.getName() + " hat sich aus dem Kampf zurückgezogen!"); break;
                         }
                     }
                     
-                    hero.setCharacterInSameRoom(-1);
+                    hero.setCharacterInSameRoomIndex(-1);
                     setIsInCombat(false);
                     
                 }
@@ -778,12 +745,12 @@ public class MainLogic {
             case 3:
                 
                 // If the hero is in the same room as a mimic, there is a 50% chance that it will yield gold without a fight 
-                if (randomNumber() % 2 == 0) {
+                if (getRandomNumber(10) % 2 == 0) {
                     switch (language) {
                         case "English": gameWindow.printToTerminal("\n\nAt " + hero.getXCord() + ", " + hero.getYCord() + " you find a treasure chest and inside you find " + chestReward + " gold"); break;
                         case "German": gameWindow.printToTerminal("\n\nAn " + hero.getXCord() + ", " + hero.getYCord() + " gibt es eine Schatzkiste. Drinnen haben Sie " + chestReward + " Geld gefunden"); break;
                     }
-                    characterList.remove(characterList.get(hero.getCharacterInSameRoom()));
+                    characterList.remove(character);
                 }
                 else {
                     
@@ -792,7 +759,7 @@ public class MainLogic {
                         case "German": gameWindow.printToTerminal("\n\nAn " + hero.getXCord() + ", " + hero.getYCord() + " gibt es eine Schatzkiste und sie greift Ihnen an!"); break;
                     }
                     
-                    characterList.get(hero.getCharacterInSameRoom()).setTypeValue(2);
+                    character.setTypeValue(2);
                     initializeCombat();
                     
                 }
@@ -814,45 +781,42 @@ public class MainLogic {
      * 
      * @param firstTrade    Indicates whether this is the first time the hero traded
      */
-    public static void printMerchantInventory(Boolean firstTrade) {
-        String merchantName = characterList.get(hero.getCharacterInSameRoom()).getName();
+    public static void printMerchantInventory(boolean firstTrade) {
+        Character merchant = characterList.get(hero.getCharacterInSameRoomIndex());
         gameWindow.fullGameGraphicsUpdate();
         
         if (firstTrade) {
             switch (language) {
-                case "English": 
-
+                case "English":
                     gameWindow.printToTerminal("\n\n~ Trade Menu ~"); 
                     
-                    if (characterList.get(hero.getCharacterInSameRoom()).getHealthPotionCondition()) {
-                        gameWindow.printToTerminal("\n" + merchantName + " is selling a health potion for " + potionPrice + " gold");
+                    if (merchant.getHasHealthPotion()) {
+                        gameWindow.printToTerminal("\n" + merchant.getName() + " is selling a health potion for " + potionPrice + " gold");
                     }
-                    else gameWindow.printToTerminal("\n" + merchantName + " does not have a health potion for sale\n");
+                    else gameWindow.printToTerminal("\n" + merchant.getName() + " does not have a health potion for sale\n");
                     
-                    if (characterList.get(hero.getCharacterInSameRoom()).getStrengthPotionCondition()) {
-                        gameWindow.printToTerminal("\n" + merchantName + " is selling a strength potion for " + potionPrice + " gold");
+                    if (merchant.getHasStrengthPotion()) {
+                        gameWindow.printToTerminal("\n" + merchant.getName() + " is selling a strength potion for " + potionPrice + " gold");
                     } 
-                    else gameWindow.printToTerminal("\n" + merchantName + " does not have a strength potion for sale");
+                    else gameWindow.printToTerminal("\n" + merchant.getName() + " does not have a strength potion for sale");
                     
                     gameWindow.printToTerminal("\nWhat would you like to buy? ");
                     
                 break;
-                case "German": 
-
+                case "German":
                     gameWindow.printToTerminal("\n\n~ Handelsmenü ~"); 
                     
-                    if (characterList.get(hero.getCharacterInSameRoom()).getHealthPotionCondition()) {
-                        gameWindow.printToTerminal("\n" + merchantName + " verkauft einen Heiltrank für " + potionPrice + " Geld");
+                    if (merchant.getHasHealthPotion()) {
+                        gameWindow.printToTerminal("\n" + merchant.getName() + " verkauft einen Heiltrank für " + potionPrice + " Geld");
                     }
-                    else gameWindow.printToTerminal("\n" + merchantName + " verkauft keine Heiltränke\n");
+                    else gameWindow.printToTerminal("\n" + merchant.getName() + " verkauft keine Heiltränke\n");
                     
-                    if (characterList.get(hero.getCharacterInSameRoom()).getStrengthPotionCondition()) {
-                        gameWindow.printToTerminal("\n" + merchantName + " verkauft einen Krafttrank für " + potionPrice + " Geld");
+                    if (merchant.getHasStrengthPotion()) {
+                        gameWindow.printToTerminal("\n" + merchant.getName() + " verkauft einen Krafttrank für " + potionPrice + " Geld");
                     } 
-                    else gameWindow.printToTerminal("\n" + merchantName + " verkauft keine Krafttränke");
+                    else gameWindow.printToTerminal("\n" + merchant.getName() + " verkauft keine Krafttränke");
                     
                     gameWindow.printToTerminal("\nWas möchten Sie kaufen?");
-                    
                 break;
             }
         }
@@ -861,38 +825,41 @@ public class MainLogic {
     /**
      * Handles the functionality for the hero or monster that wishes to retreat. 
      * 
-     * @param type                   The character type (0 is hero, 2 is monster)
+     * @param  characterType         The character type (0 is hero, 2 is monster)
      * @return successfulRetreat     Indicates whether a retreat was successful 
      */
     public static boolean retreat(int characterType) {
-        hero = characterList.get(0);
-        Random random = new Random();
-        boolean successfulRetreat = getCanRetreat();
-        
-        if (!successfulRetreat) {
+        Character monster = characterList.get(hero.getCharacterInSameRoomIndex());
+        hero = characterList.getFirst();
+        Boolean successfulRetreat = null;
+
+        // If getCanRetreat() returns false, the method will return with a false boolean
+        if (!getCanRetreat()) {
             if (characterType == 0) {
                 gameWindow.printToTerminal(new LanguageTranslation("\n\nYou can't retreat from this battle!", "\n\nSie können aus diesen Kampf nicht zurückziehen!").extrapolate());
                 gameWindow.playGame(false);
             }
+            successfulRetreat = false;
             return successfulRetreat;
         }
         
         if (characterType == 0) {
             
             // While retreating, the hero will take a varied health deduction based on the monster's max damage
-            int damage = random.nextInt(characterList.get(hero.getCharacterInSameRoom()).getMaxDamage());
-            int characterHealth = hero.getHealth() - damage;
-            hero.setHealth(characterHealth);
+            int damageToHero = getRandomNumber(monster.getMaxDamage());
+            int newHeroHealth = hero.getHealth() - damageToHero;
+            hero.setHealth(newHeroHealth);
             
             switch (language) {
-                case "English": gameWindow.printToTerminal("\n\n" + characterList.get(hero.getCharacterInSameRoom()).getName() + " hits you for " + damage + " damage"); break;
-                case "German": gameWindow.printToTerminal("\n\n" + characterList.get(hero.getCharacterInSameRoom()).getName() + " hat Sie für " + damage + " Schadenspunkte geschlagen"); break;
+                case "English": gameWindow.printToTerminal("\n\n" + monster.getName() + " hits you for " + damageToHero + " damage"); break;
+                case "German": gameWindow.printToTerminal("\n\n" + monster.getName() + " hat Sie für " + damageToHero + " Schadenspunkte geschlagen"); break;
             }
             
-            // If the hero is dead, the game will end. Otherwise, the hero is informed of the successful escape
+            // If the hero is dead, the game will end. Otherwise, the hero is informed of the successful retreat
             if (hero.isDead()) { 
                 characterDeath = true; 
                 isGameOverAndPushMessageIfSo(); // No clean up needed
+                successfulRetreat = false;
             }
             else {
                 switch (language) {
@@ -900,26 +867,29 @@ public class MainLogic {
                     case "German": gameWindow.printToTerminal("\n\nSie haben sich aus diesem Kampf zurückgezogen mit " + hero.getHealth() + " Gesundheitspunkte übrig"); break;
                 }
                 setIsInCombat(false);
+                successfulRetreat = true;
             }
             
         }
         else {
             
             // Logic for a monster retreat from a battle
-            int damage = random.nextInt(hero.getMaxDamage());
-            int characterHealth = characterList.get(hero.getCharacterInSameRoom()).getHealth() - damage;
-            characterList.get(hero.getCharacterInSameRoom()).setHealth(characterHealth);
+            int damageToMonster = getRandomNumber(hero.getMaxDamage());
+            int newMonsterHealth = monster.getHealth() - damageToMonster;
+            monster.setHealth(newMonsterHealth);
             
             switch (language) {
                 case "English": 
-                    gameWindow.printToTerminal("\n\n" + characterList.get(hero.getCharacterInSameRoom()).getName() + " is retreating from " + hero.getXCord() + ", " + hero.getYCord() + "!");
-                    gameWindow.printToTerminal("\nYou hit " + characterList.get(hero.getCharacterInSameRoom()).getName() + " for " + damage + " damage");
+                    gameWindow.printToTerminal("\n\n" + monster.getName() + " is retreating from " + hero.getXCord() + ", " + hero.getYCord() + "!");
+                    gameWindow.printToTerminal("\nYou hit " + monster.getName() + " for " + damageToMonster + " damage");
                 break;
                 case "German": 
-                    gameWindow.printToTerminal("\n\n" + characterList.get(hero.getCharacterInSameRoom()).getName() + " zurückzieht aus " + hero.getXCord() + ", " + hero.getYCord() + "!");
-                    gameWindow.printToTerminal("\nSie haben " + characterList.get(hero.getCharacterInSameRoom()).getName() + " für " + damage + " Schadenspunkte geschlagen");
+                    gameWindow.printToTerminal("\n\n" + monster.getName() + " zurückzieht aus " + hero.getXCord() + ", " + hero.getYCord() + "!");
+                    gameWindow.printToTerminal("\nSie haben " + monster.getName() + " für " + damageToMonster + " Schadenspunkte geschlagen");
                 break;
             }
+
+            successfulRetreat = true;
             
         }
         return successfulRetreat;

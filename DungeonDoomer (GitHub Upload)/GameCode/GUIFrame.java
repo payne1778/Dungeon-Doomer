@@ -418,14 +418,14 @@ public class GUIFrame extends JFrame {
     /**
      * Configures UI to a normal game for the user to interact with. Also prints out command prompts. 
      */
-    public void playGame(Boolean userInputRequest) {
+    public void playGame(boolean userInputRequest) {
         
         if (MainLogic.getGameStart() || MainLogic.getGameRerun()) {
             characterList = MainLogic.initializeGame(heroName);
         }
         
         characterList = MainLogic.getCharacterList();
-        hero = characterList.get(0);
+        hero = characterList.getFirst();
         fullGameGraphicsUpdate();
         
         if (userInputRequest){
@@ -527,7 +527,7 @@ public class GUIFrame extends JFrame {
     }
 
     /**
-     * Populates the translation Array if first call. Otherwise assigns info to valueName. 
+     * Populates the translation Array if first call. Otherwise, assigns info to valueName.
      */
     private void handleStatusPanelTranslations() {
         if (statusPanelCounter < 0) {
@@ -549,11 +549,11 @@ public class GUIFrame extends JFrame {
             case 0: valueName = String.valueOf(hero.getHealth()); break;
             case 1: valueName = String.valueOf(hero.getMaxDamage()); break;
             case 2: valueName = "(" + hero.getXCord() + ", " + hero.getYCord() + ")"; break;
-            case 3: valueName = String.valueOf(hero.inAdjacentRoom()); break; 
+            case 3: valueName = String.valueOf(hero.getSmellCounter()); break;
             case 4: valueName = String.valueOf(hero.getTurnCounterValue()); break; 
             case 5: valueName = String.valueOf(hero.getGoldValue()); break;
-            case 6: valueName = String.valueOf(hero.getPotionMessage(hero.getHealthPotionCondition())); break;
-            case 7: valueName = String.valueOf(hero.getPotionMessage(hero.getHealthPotionCondition())); break;
+            case 6: valueName = String.valueOf(hero.getPotionMessage(hero.getHasHealthPotion())); break;
+            case 7: valueName = String.valueOf(hero.getPotionMessage(hero.getHasStrengthPotion())); break;
         }
     }
 
@@ -645,8 +645,8 @@ public class GUIFrame extends JFrame {
             loadFromSave(userInput);
         }
         else if (!MainLogic.getIsSaveLoading()) {
-            
-            // If the user had not entered the above inputs and is not loading a save, the following inputs will be checked. 
+
+            // If the user had not entered the above inputs and is not loading a save, the following inputs will be checked.
             if (userInput.contains("save") || userInput.contains("speich")) {
                 handleSaveAndLoadCommands("save");
             }
@@ -654,35 +654,35 @@ public class GUIFrame extends JFrame {
                 handleSaveAndLoadCommands("load");
             }
             else {
-                
-                // If the user is not trying to save or load from a save, the following inputs will be checked. 
+
+                // If the user is not trying to save or load from a save, the following inputs will be checked.
                 if (MainLogic.getIsInTrade()) {
-                    
+
                     if ((userInput.contains("leave")) || userInput.contains("verlassen")) {
                         MainLogic.setIsInTrade(false);
                         playGame(true);
                     }
                     else trade(userInput);
-                    
+
                 }
-                else {  
-                    
-                    // If the user is not in a trade, the following inputs will be checked. 
+                else {
+
+                    // If the user is not in a trade, the following inputs will be checked.
                     if (userInput.contains("health") || userInput.contains("heil")) {
                         MainLogic.drinkHealthPotion();
                     }
                     else if (userInput.contains("strength") || userInput.contains("kraft")) {
                         MainLogic.drinkStrengthPotion();
                     }
-                    else if ((Arrays.stream(validDirectionsEN).anyMatch(userInput::contains)) || 
+                    else if ((Arrays.stream(validDirectionsEN).anyMatch(userInput::contains)) ||
                     (Arrays.stream(validDirectionsDE).anyMatch(userInput::contains))) {
                         MainLogic.move(userInput);
                     }
                     else {
-                        nonvalidInputMessage();
+                        invalidInputMessage();
                         playGame(false);
                     }
-                    
+
                 }
             }
         }
@@ -740,7 +740,7 @@ public class GUIFrame extends JFrame {
             playGame(false);
             
         }
-        else nonvalidSaveMessage();
+        else invalidSaveMessage();
     }
 
     /**
@@ -814,7 +814,7 @@ public class GUIFrame extends JFrame {
      * @param userInput     The user's input for what the hero should do
      */
     public void combatCommandInterpreter(String userInput) {
-        Boolean successfulRetreat = false;
+        boolean successfulRetreat = false;
         
         if (userInput.equals("fight") || userInput.contains("kampf")) {
             hero.hitCharacter();
@@ -843,7 +843,7 @@ public class GUIFrame extends JFrame {
             handleAdminCheck(userInput);
         }
         else {
-            nonvalidInputMessage();
+            invalidInputMessage();
             playGame(false);
         }
         
@@ -852,11 +852,9 @@ public class GUIFrame extends JFrame {
             if (!MainLogic.isGameOverAndPushMessageIfSo()) playGame(true); // No cleanup function needed 
             characterList = MainLogic.getCharacterList();
         }
-        else { 
-            if(!successfulRetreat) {
-                MainLogic.setIsInCombat(true); 
-                fight(false); 
-            }
+        else {
+            MainLogic.setIsInCombat(true);
+            fight(false);
         }
 
     }
@@ -913,7 +911,7 @@ public class GUIFrame extends JFrame {
     /**
      * Prints a message to the terminal indicating that the most recent command input was invalid.
      */
-    private void nonvalidInputMessage() {
+    private void invalidInputMessage() {
         switch (MainLogic.getLanguage()) {
             case "English": printToTerminal("\n\nThat's not a valid input!"); break;
             case "German": printToTerminal("\n\nDas ist keine gültige Eingabe!"); break;
@@ -923,7 +921,7 @@ public class GUIFrame extends JFrame {
     /**
      * Prints a message to the terminal indicating that the most recent save file input was invalid.
      */
-    private void nonvalidSaveMessage() {
+    private void invalidSaveMessage() {
         switch (MainLogic.getLanguage()) {
             case "English": pushMessage("\n\nThat's not a valid save file!"); break;
             case "German": pushMessage("\n\nDas ist keine gültige Speicherdatei!"); break;
@@ -936,18 +934,18 @@ public class GUIFrame extends JFrame {
      * @param tradeInput    The user's input for a specific trade 
      */
     public void trade(String tradeInput) {
-        String merchantName = characterList.get(hero.getCharacterInSameRoom()).getName();
+        Character merchant = characterList.get(hero.getCharacterInSameRoomIndex());
         fullGameGraphicsUpdate(); 
         
         if (tradeInput.contains("health") || tradeInput.contains("heil")) {
             
-            if (!characterList.get(hero.getCharacterInSameRoom()).getHealthPotionCondition()) {
+            if (!characterList.get(hero.getCharacterInSameRoomIndex()).getHasHealthPotion()) {
                 switch (MainLogic.getLanguage()) {
-                    case "English": printToTerminal("\n\n" + merchantName + " does not have a health potion for sale"); break;
-                    case "German": printToTerminal("\n\n" + merchantName + " verkauft keinen Heiltrank"); break;
+                    case "English": printToTerminal("\n\n" + merchant.getName() + " does not have a health potion for sale"); break;
+                    case "German": printToTerminal("\n\n" + merchant.getName() + " verkauft keinen Heiltrank"); break;
                 }
             }
-            if (hero.getHealthPotionCondition()) {
+            if (hero.getHasHealthPotion()) {
                 switch (MainLogic.getLanguage()) {
                     case "English": printToTerminal("\n\nYou already have a health potion in your inventory"); break;
                     case "German": printToTerminal("\n\nSie haben schon einen Heiltrank im Inventar"); break;
@@ -959,9 +957,9 @@ public class GUIFrame extends JFrame {
                     case "German": printToTerminal("\n\n" + hero.getGoldValue() + " Geld ist nicht genug, um einen Heiltrank zu kaufen");  break;
                 }
             }
-            
-            characterList.get(hero.getCharacterInSameRoom()).setHealthPotionCondition(false); 
-            hero.setHealthPotionCondition(true);
+
+            merchant.setHasHealthPotion(false);
+            hero.setHasHealthPotion(true);
             hero.setGoldValue(hero.getGoldValue() - MainLogic.getPotionPrice());
             
             switch (MainLogic.getLanguage()) {
@@ -972,13 +970,13 @@ public class GUIFrame extends JFrame {
         }
         else if (tradeInput.contains("strength") || tradeInput.contains("kraft")) {
             
-            if (!characterList.get(hero.getCharacterInSameRoom()).getStrengthPotionCondition()) {
+            if (!characterList.get(hero.getCharacterInSameRoomIndex()).getHasStrengthPotion()) {
                 switch (MainLogic.getLanguage()) {
-                    case "English": printToTerminal("\n\n" + merchantName + " does not have a strength potion for sale"); break;
-                    case "German": printToTerminal("\n\n" + merchantName + " verkauft keinen Krafttrank"); break;
+                    case "English": printToTerminal("\n\n" + merchant.getName() + " does not have a strength potion for sale"); break;
+                    case "German": printToTerminal("\n\n" + merchant.getName() + " verkauft keinen Krafttrank"); break;
                 }
             }
-            if (hero.getStrengthPotionCondition()) {
+            if (hero.getHasStrengthPotion()) {
                 switch (MainLogic.getLanguage()) {
                     case "English": printToTerminal("\n\nYou already have a strength potion in your inventory"); break;
                     case "German": printToTerminal("\n\nSie haben schon einen Krafttrank im Inventar"); break;
@@ -990,9 +988,9 @@ public class GUIFrame extends JFrame {
                     case "German": printToTerminal("\n\n" + hero.getGoldValue() + " Geld ist nicht genug, um einen Krafttrank zu kaufen");  break;
                 }
             }
-            
-            characterList.get(hero.getCharacterInSameRoom()).setStrengthPotionCondition(false); 
-            hero.setStrengthPotionCondition(true);
+
+            merchant.setHasStrengthPotion(false);
+            hero.setHasStrengthPotion(true);
             hero.setGoldValue(hero.getGoldValue() - MainLogic.getPotionPrice());
             
             switch (MainLogic.getLanguage()) {
@@ -1004,13 +1002,13 @@ public class GUIFrame extends JFrame {
         else if (tradeInput.contains("kill") || tradeInput.contains("toet") || tradeInput.contains("töt")) {
             
             // If the user decides to kill the merchant, the merchant will then forever be considered a monster 
-            characterList.get(hero.getCharacterInSameRoom()).setTypeValue(2); 
+            characterList.get(hero.getCharacterInSameRoomIndex()).setTypeValue(2);
             MainLogic.setIsInTrade(false);
             MainLogic.setIsInCombat(true);
             fight(true);
 
         }
-        else nonvalidInputMessage();
+        else invalidInputMessage();
     }
 
     /**
@@ -1019,27 +1017,24 @@ public class GUIFrame extends JFrame {
      * @param firstFight    Indicates whether this is the first time the hero has 
      *                      fought this monster
      */
-    public void fight(Boolean firstFight) {
+    public void fight(boolean firstFight) {
+        Character monster = MainLogic.getCharacterList().get(hero.getCharacterInSameRoomIndex());
         fullGameGraphicsUpdate();
-        
+
         if (firstFight) {
             switch (MainLogic.getLanguage()) {
                 case "English": 
-                    printToTerminal("\n\n~ Fight with " + MainLogic.getCharacterList().get(hero.getCharacterInSameRoom()).getName() + " ~\n" +
-                    hero.getName() + " at " + hero.getXCord() + ", " + hero.getYCord() + " with " + hero.getHealth() + " health versus " +
-                    MainLogic.getCharacterList().get(hero.getCharacterInSameRoom()).getName() + " at " + 
-                    MainLogic.getCharacterList().get(hero.getCharacterInSameRoom()).getXCord() + ", " + 
-                    MainLogic.getCharacterList().get(hero.getCharacterInSameRoom()).getYCord() + " with " + 
-                    MainLogic.getCharacterList().get(hero.getCharacterInSameRoom()).getHealth() + " health");
+                    printToTerminal("\n\n~ Fight with " + monster.getName() + " ~\n" +
+                            hero.getName() + " at " + hero.getXCord() + ", " + hero.getYCord() + " with " +
+                            hero.getHealth() + " health versus " + monster.getName() + " at " + monster.getXCord() +
+                            ", " + monster.getYCord() + " with " + monster.getHealth() + " health");
                     printToTerminal("\n\nWhat would you like to do? ");
                 break;
                 case "German": 
-                    printToTerminal("\n\n~ Kampf mit " + MainLogic.getCharacterList().get(hero.getCharacterInSameRoom()).getName() + " ~\n" +
-                    hero.getName() + " an " + hero.getXCord() + ", " + hero.getYCord() + " mit " + hero.getHealth() + " Gesundheitspunkte gegen " +
-                    MainLogic.getCharacterList().get(hero.getCharacterInSameRoom()).getName() + " an " + 
-                    MainLogic.getCharacterList().get(hero.getCharacterInSameRoom()).getXCord() + ", " + 
-                    MainLogic.getCharacterList().get(hero.getCharacterInSameRoom()).getYCord() + " mit " + 
-                    MainLogic.getCharacterList().get(hero.getCharacterInSameRoom()).getHealth() + " Gesundheitspunkte");
+                    printToTerminal("\n\n~ Kampf mit " + monster.getName() + " ~\n" + hero.getName() +
+                            " an " + hero.getXCord() + ", " + hero.getYCord() + " mit " + hero.getHealth() +
+                            " Gesundheitspunkte gegen " + monster.getName() + " an " + monster.getXCord() + ", " +
+                            monster.getYCord() + " mit " + monster.getHealth() + " Gesundheitspunkte");
                     printToTerminal("\n\nWas möchten Sie tun?"); 
                 break;
             }
@@ -1126,9 +1121,6 @@ public class GUIFrame extends JFrame {
                 }
                 else throw new IllegalTranslationException(translation);
             }
-            catch (IllegalTranslationException ile) {
-                ile.printStackTrace(MainLogic.getPrintStream());
-            }
             catch (Exception ex) {
                 ex.printStackTrace(MainLogic.getPrintStream());
             }
@@ -1211,9 +1203,6 @@ public class GUIFrame extends JFrame {
                     mainMenu();
                 }
                 else throw new IllegalTranslationException(translation);
-            }
-            catch (IllegalTranslationException ile) {
-                ile.printStackTrace(MainLogic.getPrintStream());
             }
             catch (Exception ex) {
                 ex.printStackTrace(MainLogic.getPrintStream());

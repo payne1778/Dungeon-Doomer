@@ -8,13 +8,12 @@
  */
 public class IllegalTranslationException extends Exception {
 
-    private Boolean successfulSaveCreation = true;
-
     public IllegalTranslationException(String translation) {
         super("Current translation extrapolation is not supported: " + translation);
-        
-        try { 
-            new SaveFileMaker().createSave(); 
+
+        boolean successfulSaveCreation = true;
+        try {
+            new SaveFileMaker().createSave();
         } 
         catch (Exception e) { 
             e.printStackTrace(MainLogic.getPrintStream()); 
