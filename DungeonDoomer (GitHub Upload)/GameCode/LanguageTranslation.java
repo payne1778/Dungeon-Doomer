@@ -8,16 +8,14 @@ public record LanguageTranslation(String english, String german) {
 
     /**
      * Constructor for LanguageTranslation record. Takes in two translations and stores them as a record object. 
-     * 
+     *
      * @param english   The English translation string 
      * @param german    The German translation string 
      */
-    public LanguageTranslation(String english, String german) {
+    public LanguageTranslation {
         if (english.isEmpty() || german.isEmpty()) {
             throw new IllegalStateException("Translation string(s) may not be empty");
         }
-        this.english = english;
-        this.german = german;
     }
 
     /**

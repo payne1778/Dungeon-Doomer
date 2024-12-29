@@ -33,7 +33,7 @@ public class SaveFileMaker {
             output.write("turnCounter: " + turnCounter);
             output.write("\n");
             
-            Integer characterInSameRoom = hero.getCharacterInSameRoom();
+            Integer characterInSameRoom = hero.getCharacterInSameRoomIndex();
             output.write("characterInSameRoom: " + characterInSameRoom);
             output.write("\n");
             
@@ -78,11 +78,11 @@ public class SaveFileMaker {
                 output.write("type: " + type);
                 output.write("\n");
                 
-                Boolean healthPotionCondition = MainLogic.getCharacterList().get(i).getHealthPotionCondition();
+                Boolean healthPotionCondition = MainLogic.getCharacterList().get(i).getHasHealthPotion();
                 output.write("healthPotionCondition: " + healthPotionCondition);
                 output.write("\n");
                 
-                Boolean strengthPotionCondition = MainLogic.getCharacterList().get(i).getStrengthPotionCondition();
+                Boolean strengthPotionCondition = MainLogic.getCharacterList().get(i).getHasStrengthPotion();
                 output.write("strengthPotionCondition: " + strengthPotionCondition);
                 output.write("\n");
                 
